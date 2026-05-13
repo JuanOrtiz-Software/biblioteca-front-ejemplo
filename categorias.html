@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categorías · Biblioteca</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg:#0f1117;--surface:#181423;--card:#1f1a2e;--accent:#a78bfa;--accent-dim:rgba(167,139,250,0.12);--accent-glow:rgba(167,139,250,0.3);--text:#e8eaf0;--muted:#6b7280;--border:rgba(255,255,255,0.07);--success:#3ecf8e;--danger:#f87171;--input-bg:#2a243b;--radius:12px; }
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);padding:24px 20px 60px;}
+        .back-btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;padding:8px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:32px;}
+        .back-btn:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-dim);}
+        .page-header{margin-bottom:36px;}.page-tag{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--accent);}
+        h1{background:linear-gradient(135deg,#e8eaf0 30%,#c4b5fd 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        .layout{display:grid;grid-template-columns:320px 1fr;gap:20px;max-width:1080px;}@media(max-width:800px){.layout{grid-template-columns:1fr;}}
+        .panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:16px;}
+        .field input{width:100%;padding:9px 13px;background:var(--input-bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);}
+        .btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:#b9a9fc;}
+        .btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+        .card-categoria{background:var(--surface);border-radius:12px;padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+        .id-chip{font-family:'Space Mono',monospace;font-size:10px;background:var(--accent-dim);padding:2px 8px;border-radius:20px;}
+        .list-body{max-height:600px;overflow-y:auto;padding:14px;}
+        .toast{position:fixed;bottom:24px;right:24px;background:var(--card);border-radius:12px;padding:12px 18px;transition:0.35s;transform:translateY(80px);opacity:0;}
+        .toast.show{transform:translateY(0);opacity:1;}
+        .modal{background:var(--card);border-radius:20px;padding:26px;}
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;}
+        .modal-overlay.open{opacity:1;pointer-events:all;}
+    </style>
+</head>
+<body>
+<a class="back-btn" href="index.html">← Panel principal</a>
+<div class="page-header"><span class="page-tag">Módulo · Categorías</span><h1>🏷️ Gestión de Categorías</h1></div>
+<div class="layout">
+    <div><div class="panel"><div class="panel-title">➕ Nueva categoría</div><div class="field"><label>Nombre</label><input type="text" id="nombreCat" placeholder="Ej. Novela"></div><button class="btn btn-primary btn-full" onclick="crearCategoria()">Crear categoría</button></div>
+    <div class="panel"><div class="panel-title">🔍 Buscar por ID</div><div class="row"><div class="field"><label>ID</label><input type="number" id="buscarIdCat"></div><button class="btn btn-ghost" onclick="obtenerCategoria()">Buscar</button></div><div id="resultadoCat"></div></div>
+    <div class="panel"><div class="panel-title">🗑️ Eliminar</div><div class="row"><div class="field"><label>ID categoría</label><input type="number" id="deleteIdCat"></div><button class="btn btn-danger" onclick="confirmarEliminarCat()">Eliminar</button></div></div></div>
+    <div class="list-panel"><div class="list-header"><span>📋 Categorías <span class="badge" id="countBadge">0</span></span><button class="btn btn-ghost btn-sm" onclick="obtenerCategorias()">↻ Actualizar</button></div><div class="list-body" id="listaCat"><div class="empty-state">📭 Sin datos</div></div></div>
+</div>
+<div class="modal-overlay" id="editModalCat"><div class="modal"><div class="modal-title">✏️ Editar categoría</div><input type="hidden" id="editIdCat"><div class="field"><label>Nombre</label><input type="text" id="editNombreCat"></div><div class="modal-actions" style="display:flex;gap:10px;margin-top:18px;"><button class="btn btn-ghost" onclick="cerrarModalCat()">Cancelar</button><button class="btn btn-primary" onclick="actualizarCategoria()">Guardar</button></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+    const API="http://127.0.0.1:3000/categorias";
+    function toast(msg,tipo){const el=document.getElementById("toast");el.textContent=(tipo==="success"?"✅ ":"❌ ")+msg;el.className=`toast ${tipo} show`;setTimeout(()=>el.classList.remove("show"),3200);}
+    async function obtenerCategorias(){try{const data=await(await fetch(API)).json();const lista=document.getElementById("listaCat");document.getElementById("countBadge").textContent=data.length;if(!data.length){lista.innerHTML='<div class="empty-state">📭 Sin categorías</div>';return;}lista.innerHTML="";data.forEach(c=>{const div=document.createElement("div");div.className="card-categoria";div.innerHTML=`<span><strong>${c.nombre}</strong> <span class="id-chip">#${c.id_categoria}</span></span><div><button class="btn btn-ghost btn-sm" onclick="abrirEditarCat(${c.id_categoria},'${c.nombre.replace(/'/g,"\\'")}')">✏️</button><button class="btn btn-danger btn-sm" onclick="eliminarDirectoCat(${c.id_categoria})">🗑️</button></div>`;lista.appendChild(div);});}catch{toast("Error conexión","error");}}
+    async function crearCategoria(){const nombre=document.getElementById("nombreCat").value.trim();if(!nombre) return toast("Nombre requerido","error");try{const res=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({nombre})});if(res.ok){toast("Categoría creada","success");document.getElementById("nombreCat").value="";obtenerCategorias();}else{toast("Error","error");}}catch{toast("Error","error");}}
+    function abrirEditarCat(id,nombre){document.getElementById("editIdCat").value=id;document.getElementById("editNombreCat").value=nombre;document.getElementById("editModalCat").classList.add("open");}
+    function cerrarModalCat(){document.getElementById("editModalCat").classList.remove("open");}
+    async function actualizarCategoria(){const id=document.getElementById("editIdCat").value;const nombre=document.getElementById("editNombreCat").value.trim();try{const res=await fetch(`${API}/${id}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({nombre})});if(res.ok){toast("Actualizada","success");cerrarModalCat();obtenerCategorias();}else{toast("Error","error");}}catch{toast("Error","error");}}
+    async function obtenerCategoria(){const id=document.getElementById("buscarIdCat").value;if(!id)return;try{const res=await fetch(`${API}/${id}`);if(!res.ok){toast("No encontrada","error");return;}const c=await res.json();document.getElementById("resultadoCat").innerHTML=`<div class="card-categoria"><span>${c.nombre} <span class="id-chip">#${c.id_categoria}</span></span></div>`;}catch{toast("Error","error");}}
+    function confirmarEliminarCat(){const id=document.getElementById("deleteIdCat").value;if(!id)return toast("Ingresa ID","error");eliminarDirectoCat(id);}
+    async function eliminarDirectoCat(id){if(!confirm(`Eliminar categoría #${id}?`))return;try{const res=await fetch(`${API}/${id}`,{method:"DELETE"});if(res.ok){toast("Eliminada","success");obtenerCategorias();document.getElementById("deleteIdCat").value="";}else{const e=await res.json();toast(e.detail||"Error","error");}}catch{toast("Error","error");}}
+    document.getElementById("editModalCat").addEventListener("click",(e)=>{if(e.target===e.currentTarget)cerrarModalCat();});
+    obtenerCategorias();
+</script>
+</body>
+</html>

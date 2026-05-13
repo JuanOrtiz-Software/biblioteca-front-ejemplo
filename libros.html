@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Libros · Biblioteca</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg:#0f1117;--surface:#1a1a1f;--card:#22242e;--accent:#f59e0b;--accent-dim:rgba(245,158,11,0.12);--accent-glow:rgba(245,158,11,0.3);--text:#e8eaf0;--muted:#6b7280;--border:rgba(255,255,255,0.07);--success:#3ecf8e;--danger:#f87171;--input-bg:#2d2f3a;--radius:12px;}
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);padding:24px 20px 60px;}
+        .back-btn{display:inline-flex;gap:8px;text-decoration:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;padding:8px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:32px;}
+        .layout{display:grid;grid-template-columns:340px 1fr;gap:20px;}@media(max-width:800px){.layout{grid-template-columns:1fr;}}
+        .panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:16px;}
+        .field input,.field textarea{width:100%;padding:9px 13px;background:var(--input-bg);border-radius:var(--radius);border:1px solid var(--border);color:var(--text);}
+        .btn-primary{background:var(--accent);color:#000;}.btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+        .libro-card{background:var(--surface);border-radius:12px;padding:14px;margin-bottom:8px;}
+        .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;}
+        .modal-overlay.open{opacity:1;pointer-events:all;}
+        .modal{background:var(--card);border-radius:20px;padding:26px;width:100%;max-width:480px;}
+        .toast{position:fixed;bottom:24px;right:24px;background:var(--card);border-radius:12px;padding:12px;transition:0.35s;transform:translateY(80px);opacity:0;}
+        .toast.show{transform:translateY(0);opacity:1;}
+    </style>
+</head>
+<body>
+<a class="back-btn" href="index.html">← Panel principal</a>
+<div class="page-header"><span class="page-tag">Módulo · Libros</span><h1>📚 Catálogo de Libros</h1></div>
+<div class="layout">
+    <div><div class="panel"><div class="panel-title">➕ Nuevo libro</div><div class="field"><label>Título</label><input type="text" id="titulo" placeholder="Cien años de soledad"></div><div class="two-col"><div class="field"><label>Año</label><input type="number" id="anio"></div><div class="field"><label>Stock</label><input type="number" id="stock" value="3"></div></div><div class="two-col"><div class="field"><label>ID Autor</label><input type="number" id="id_autor" placeholder="1"></div><div class="field"><label>ID Categoría</label><input type="number" id="id_categoria" placeholder="1"></div></div><button class="btn btn-primary btn-full" onclick="crearLibro()">Registrar libro</button></div>
+    <div class="panel"><div class="panel-title">🔍 Buscar por ID</div><div class="row"><div class="field"><label>ID Libro</label><input type="number" id="buscarId"></div><button class="btn btn-ghost" onclick="obtenerLibro()">Buscar</button></div><div id="resultadoLibro"></div></div>
+    <div class="panel"><div class="panel-title">🗑️ Eliminar</div><div class="row"><div class="field"><label>ID Libro</label><input type="number" id="deleteId"></div><button class="btn btn-danger" onclick="confirmarEliminarLibro()">Eliminar</button></div></div></div>
+    <div class="list-panel"><div class="list-header"><span>📋 Libros <span class="badge" id="countBadge">0</span></span><button class="btn btn-ghost btn-sm" onclick="obtenerLibros()">↻ Actualizar</button></div><div class="list-body" id="listaLibros" style="max-height:600px;overflow-y:auto;padding:14px;"></div></div>
+</div>
+<div class="modal-overlay" id="editModalLibro"><div class="modal"><div class="modal-title">✏️ Editar libro</div><input type="hidden" id="editIdLibro"><div class="field"><label>Título</label><input type="text" id="editTitulo"></div><div class="two-col"><div class="field"><label>Año</label><input type="number" id="editAnio"></div><div class="field"><label>Stock</label><input type="number" id="editStock"></div></div><div class="two-col"><div class="field"><label>ID Autor</label><input type="number" id="editIdAutor"></div><div class="field"><label>ID Categoría</label><input type="number" id="editIdCategoria"></div></div><div class="modal-actions" style="display:flex;gap:10px;margin-top:20px;"><button class="btn btn-ghost" onclick="cerrarModalLibro()">Cancelar</button><button class="btn btn-primary" onclick="actualizarLibro()">Guardar</button></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+    const API="http://127.0.0.1:3000/libros";
+    function toast(m,t){const e=document.getElementById("toast");e.textContent=(t==="success"?"✅ ":"❌ ")+m;e.className=`toast ${t} show`;setTimeout(()=>e.classList.remove("show"),3200);}
+    async function obtenerLibros(){try{const data=await(await fetch(API)).json();const cont=document.getElementById("listaLibros");document.getElementById("countBadge").textContent=data.length;if(!data.length){cont.innerHTML='<div class="empty-state">📭 Sin libros</div>';return;}cont.innerHTML="";data.forEach(l=>{const card=document.createElement("div");card.className="libro-card";card.innerHTML=`<div><strong>${l.titulo}</strong> <span class="id-chip">#${l.id_libro}</span></div><div class="card-meta">📅 ${l.anio_publicacion} | 📚 ${l.autor_nombre || `Autor ID:${l.id_autor}`} | 🏷️ ${l.categoria_nombre || `Cat ID:${l.id_categoria}`} | 📦 Stock: ${l.stock}</div><div class="card-actions"><button class="btn btn-ghost btn-sm" onclick="abrirEditarLibro(${l.id_libro},'${l.titulo.replace(/'/g,"\\'")}',${l.anio_publicacion},${l.stock},${l.id_autor},${l.id_categoria})">✏️ Editar</button><button class="btn btn-danger btn-sm" onclick="eliminarDirectoLibro(${l.id_libro})">🗑️</button></div>`;cont.appendChild(card);});}catch{toast("Error conexión","error");}}
+    async function crearLibro(){const titulo=document.getElementById("titulo").value.trim();const anio=document.getElementById("anio").value;const stock=document.getElementById("stock").value;const id_autor=document.getElementById("id_autor").value;const id_categoria=document.getElementById("id_categoria").value;if(!titulo||!anio||!id_autor||!id_categoria) return toast("Complete campos obligatorios","error");try{const res=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({titulo,anio_publicacion:parseInt(anio),stock:parseInt(stock),id_autor:parseInt(id_autor),id_categoria:parseInt(id_categoria)})});if(res.ok){toast("Libro creado","success");document.getElementById("titulo").value="";document.getElementById("anio").value="";document.getElementById("stock").value="3";document.getElementById("id_autor").value="";document.getElementById("id_categoria").value="";obtenerLibros();}else{const e=await res.json();toast(e.detail||"Error","error");}}catch{toast("Error","error");}}
+    function abrirEditarLibro(id,titulo,anio,stock,idAutor,idCategoria){document.getElementById("editIdLibro").value=id;document.getElementById("editTitulo").value=titulo;document.getElementById("editAnio").value=anio;document.getElementById("editStock").value=stock;document.getElementById("editIdAutor").value=idAutor;document.getElementById("editIdCategoria").value=idCategoria;document.getElementById("editModalLibro").classList.add("open");}
+    function cerrarModalLibro(){document.getElementById("editModalLibro").classList.remove("open");}
+    async function actualizarLibro(){const id=document.getElementById("editIdLibro").value;const body={titulo:document.getElementById("editTitulo").value.trim(),anio_publicacion:parseInt(document.getElementById("editAnio").value),stock:parseInt(document.getElementById("editStock").value),id_autor:parseInt(document.getElementById("editIdAutor").value),id_categoria:parseInt(document.getElementById("editIdCategoria").value)};try{const res=await fetch(`${API}/${id}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(res.ok){toast("Libro actualizado","success");cerrarModalLibro();obtenerLibros();}else{toast("Error","error");}}catch{toast("Error","error");}}
+    async function obtenerLibro(){const id=document.getElementById("buscarId").value;if(!id)return;try{const res=await fetch(`${API}/${id}`);if(!res.ok){toast("No encontrado","error");return;}const l=await res.json();document.getElementById("resultadoLibro").innerHTML=`<div class="libro-card"><strong>${l.titulo}</strong> (${l.anio_publicacion}) | Stock: ${l.stock}</div>`;}catch{toast("Error","error");}}
+    function confirmarEliminarLibro(){const id=document.getElementById("deleteId").value;if(!id)return toast("Ingrese ID","error");eliminarDirectoLibro(id);}
+    async function eliminarDirectoLibro(id){if(!confirm(`Eliminar libro #${id}?`))return;try{const res=await fetch(`${API}/${id}`,{method:"DELETE"});if(res.ok){toast("Libro eliminado","success");obtenerLibros();document.getElementById("deleteId").value="";}else{const e=await res.json();toast(e.detail||"Error","error");}}catch{toast("Error","error");}}
+    document.getElementById("editModalLibro").addEventListener("click",(e)=>{if(e.target===e.currentTarget)cerrarModalLibro();});
+    obtenerLibros();
+</script>
+</body>
+</html>

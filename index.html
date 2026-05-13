@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca · Panel principal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0c12;
+            --surface: #12141c;
+            --card: #191e2a;
+            --accent: #7c3aed;
+            --accent-dim: rgba(124,58,237,0.12);
+            --text: #eef2ff;
+            --muted: #8b92b0;
+            --border: rgba(255,255,255,0.07);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Sora', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 40px 20px;
+            background-image: radial-gradient(ellipse at 15% 20%, rgba(124,58,237,0.08) 0%, transparent 50%);
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 48px; }
+        .logo { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 3px; color: var(--accent); margin-bottom: 12px; }
+        h1 { font-size: 2.4rem; font-weight: 700; background: linear-gradient(135deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .sub { color: var(--muted); margin-top: 8px; font-size: 14px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+        .card-modulo {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 28px 24px;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s, border-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .card-modulo:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 12px 28px -8px rgba(0,0,0,0.4); }
+        .info h3 { font-size: 1.4rem; font-weight: 600; margin-bottom: 8px; }
+        .info p { font-size: 12px; color: var(--muted); }
+        .icono { font-size: 2.4rem; opacity: 0.7; }
+        footer { margin-top: 60px; text-align: center; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="logo">📖 SISTEMA BIBLIOTECA</div>
+        <h1>Gestión Integral</h1>
+        <p class="sub">Autores · Categorías · Libros · Usuarios · Préstamos</p>
+    </header>
+    <div class="grid">
+        <a href="autores.html" class="card-modulo"><div class="info"><h3>✍️ Autores</h3><p>Crear, editar, eliminar</p></div><span class="icono">→</span></a>
+        <a href="categorias.html" class="card-modulo"><div class="info"><h3>🏷️ Categorías</h3><p>Clasificación literaria</p></div><span class="icono">→</span></a>
+        <a href="libros.html" class="card-modulo"><div class="info"><h3>📚 Libros</h3><p>Catálogo + stock</p></div><span class="icono">→</span></a>
+        <a href="usuarios.html" class="card-modulo"><div class="info"><h3>👥 Usuarios</h3><p>Registro de lectores</p></div><span class="icono">→</span></a>
+        <a href="prestamos.html" class="card-modulo"><div class="info"><h3>🔄 Préstamos</h3><p>Control de fechas</p></div><span class="icono">→</span></a>
+    </div>
+    <footer>Biblioteca Escolar · API en Flask :3000</footer>
+</div>
+</body>
+</html>

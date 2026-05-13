@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autores · Biblioteca</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:#0f1117;--surface:#181c27;--card:#1e2235;
+            --accent:#4f8ef7;--accent-dim:rgba(79,142,247,0.12);--accent-glow:rgba(79,142,247,0.3);
+            --text:#e8eaf0;--muted:#6b7280;--border:rgba(255,255,255,0.07);
+            --success:#3ecf8e;--danger:#f87171;--input-bg:#252a3d;--radius:12px;
+        }
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);padding:24px 20px 60px;background-image:radial-gradient(ellipse at 20% 10%,rgba(79,142,247,0.07) 0%,transparent 45%);}
+        .back-btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;padding:8px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:32px;transition:0.2s;}
+        .back-btn:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-dim);}
+        .page-header{margin-bottom:36px;}
+        .page-tag{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;}
+        h1{font-size:clamp(1.5rem,4vw,2.2rem);font-weight:700;background:linear-gradient(135deg,#e8eaf0 30%,#7ba8f7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        .layout{display:grid;grid-template-columns:320px 1fr;gap:20px;max-width:1080px;}
+        @media(max-width:800px){.layout{grid-template-columns:1fr;}}
+        .panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;animation:fadeUp 0.4s ease;}
+        .panel+.panel{margin-top:16px;}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+        .panel-title{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+        .field{margin-bottom:12px;}
+        .field label{display:block;font-size:10px;font-weight:600;color:var(--muted);margin-bottom:5px;}
+        .field input{width:100%;padding:9px 13px;background:var(--input-bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);}
+        .field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim);outline:none;}
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 18px;border-radius:var(--radius);font-size:13px;font-weight:600;border:none;cursor:pointer;transition:0.2s;}
+        .btn-primary{background:var(--accent);color:#fff;}
+        .btn-primary:hover{background:#6a9ff9;box-shadow:0 4px 18px var(--accent-glow);transform:translateY(-1px);}
+        .btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+        .btn-ghost:hover{background:var(--accent-dim);}
+        .btn-danger{background:transparent;color:var(--danger);border:1px solid rgba(248,113,113,0.25);}
+        .btn-danger:hover{background:rgba(248,113,113,0.08);border-color:var(--danger);}
+        .btn-sm{padding:6px 12px;font-size:12px;}
+        .row{display:flex;gap:10px;align-items:flex-end;}
+        .list-panel{background:var(--card);border-radius:16px;border:1px solid var(--border);display:flex;flex-direction:column;}
+        .list-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+        .badge{background:var(--accent-dim);color:var(--accent);font-family:'Space Mono',monospace;font-size:10px;padding:2px 8px;border-radius:20px;}
+        .list-body{padding:14px;max-height:600px;overflow-y:auto;}
+        .autor-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;}
+        .autor-card:hover{border-color:rgba(79,142,247,0.3);}
+        .card-top{display:flex;justify-content:space-between;margin-bottom:8px;}
+        .card-name{font-weight:600;}
+        .id-chip{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent);background:var(--accent-dim);padding:2px 8px;border-radius:20px;}
+        .card-meta{font-size:12px;color:var(--muted);margin-top:6px;}
+        .card-actions{display:flex;gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid var(--border);}
+        .empty-state{text-align:center;padding:50px;color:var(--muted);}
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:0.25s;}
+        .modal-overlay.open{opacity:1;pointer-events:all;}
+        .modal{background:var(--card);border-radius:20px;padding:26px;width:100%;max-width:400px;border:1px solid var(--border);}
+        .toast{position:fixed;bottom:24px;right:24px;background:var(--card);border-radius:12px;padding:12px 18px;font-size:13px;box-shadow:0 8px 30px rgba(0,0,0,0.4);transform:translateY(80px);opacity:0;transition:0.35s;z-index:999;}
+        .toast.show{transform:translateY(0);opacity:1;}
+        .toast.success{border-color:#3ecf8e;color:#3ecf8e;}
+        .toast.error{border-color:#f87171;color:#f87171;}
+    </style>
+</head>
+<body>
+<a class="back-btn" href="index.html">← Panel principal</a>
+<div class="page-header"><span class="page-tag">Módulo · Autores</span><h1>✍️ Gestión de Autores</h1></div>
+<div class="layout">
+    <div>
+        <div class="panel"><div class="panel-title">➕ Nuevo autor</div>
+            <div class="field"><label>Nombre completo</label><input type="text" id="nombre" placeholder="Gabriel García Márquez"></div>
+            <div class="field"><label>Nacionalidad</label><input type="text" id="nacionalidad" placeholder="Colombia"></div>
+            <button class="btn btn-primary btn-full" onclick="crearAutor()">Crear autor</button>
+        </div>
+        <div class="panel"><div class="panel-title">🔍 Buscar por ID</div>
+            <div class="row"><div class="field"><label>ID autor</label><input type="number" id="buscarId" placeholder="Ej. 1"></div><button class="btn btn-ghost" onclick="obtenerAutor()">Buscar</button></div>
+            <div id="resultado" class="search-result"></div>
+        </div>
+        <div class="panel"><div class="panel-title">🗑️ Eliminar autor</div>
+            <div class="row"><div class="field"><label>ID autor</label><input type="number" id="deleteId" placeholder="Ej. 3"></div><button class="btn btn-danger" onclick="confirmarEliminar()">Eliminar</button></div>
+        </div>
+    </div>
+    <div class="list-panel"><div class="list-header"><span>📋 Autores registrados <span class="badge" id="countBadge">0</span></span><button class="btn btn-ghost btn-sm" onclick="obtenerAutores()">↻ Actualizar</button></div>
+    <div class="list-body" id="lista"><div class="empty-state">📭 Presiona "Actualizar" para cargar</div></div></div>
+</div>
+<div class="modal-overlay" id="editModal"><div class="modal"><div class="modal-title">✏️ Editar autor</div><input type="hidden" id="editId"><div class="field"><label>Nombre</label><input type="text" id="editNombre"></div><div class="field"><label>Nacionalidad</label><input type="text" id="editNacionalidad"></div><div class="modal-actions" style="display:flex;gap:10px;margin-top:18px;"><button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button><button class="btn btn-primary" onclick="actualizarAutor()">Guardar</button></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+    const API = "http://127.0.0.1:3000/autores";
+    function toast(msg,tipo="success"){const el=document.getElementById("toast");el.textContent=(tipo==="success"?"✅ ":"❌ ")+msg;el.className=`toast ${tipo} show`;setTimeout(()=>el.classList.remove("show"),3200);}
+    async function obtenerAutores(){try{const data=await(await fetch(API)).json();const lista=document.getElementById("lista");document.getElementById("countBadge").textContent=data.length;if(!data.length){lista.innerHTML='<div class="empty-state">📭 Sin autores registrados</div>';return;}lista.innerHTML="";data.forEach((a,i)=>{const div=document.createElement("div");div.className="autor-card";div.innerHTML=`<div class="card-top"><span class="card-name">${a.nombre}</span><span class="id-chip">#${a.id_autor}</span></div><div class="card-meta">🌍 ${a.nacionalidad}</div><div class="card-actions"><button class="btn btn-ghost btn-sm" onclick="abrirEditar(${a.id_autor},'${a.nombre.replace(/'/g, "\\'")}','${a.nacionalidad.replace(/'/g, "\\'")}')">✏️ Editar</button><button class="btn btn-danger btn-sm" onclick="eliminarDirecto(${a.id_autor})">🗑️</button></div>`;lista.appendChild(div);});}catch{toast("Error de conexión","error");}}
+    async function obtenerAutor(){const id=document.getElementById("buscarId").value;if(!id) return toast("Ingresa ID","error");try{const res=await fetch(`${API}/${id}`);if(!res.ok){toast("Autor no encontrado","error");return;}const a=await res.json();document.getElementById("resultado").innerHTML=`<div class="autor-card"><div class="card-top"><span>${a.nombre}</span><span class="id-chip">#${a.id_autor}</span></div><div class="card-meta">🌍 ${a.nacionalidad}</div></div>`;}catch{toast("Error","error");}}
+    async function crearAutor(){const nombre=document.getElementById("nombre").value.trim();const nacionalidad=document.getElementById("nacionalidad").value.trim();if(!nombre||!nacionalidad) return toast("Completa todos los campos","error");try{const res=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({nombre,nacionalidad})});if(res.ok){toast("Autor creado");document.getElementById("nombre").value="";document.getElementById("nacionalidad").value="";obtenerAutores();}else{const e=await res.json();toast(e.detail||"Error","error");}}catch{toast("Error de red","error");}}
+    function abrirEditar(id,nombre,nacionalidad){document.getElementById("editId").value=id;document.getElementById("editNombre").value=nombre;document.getElementById("editNacionalidad").value=nacionalidad;document.getElementById("editModal").classList.add("open");}
+    function cerrarModal(){document.getElementById("editModal").classList.remove("open");}
+    async function actualizarAutor(){const id=document.getElementById("editId").value;const body={nombre:document.getElementById("editNombre").value.trim(),nacionalidad:document.getElementById("editNacionalidad").value.trim()};try{const res=await fetch(`${API}/${id}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(res.ok){toast("Autor actualizado");cerrarModal();obtenerAutores();}else{const e=await res.json();toast(e.detail||"Error","error");}}catch{toast("Error","error");}}
+    function confirmarEliminar(){const id=document.getElementById("deleteId").value;if(!id) return toast("Ingresa ID","error");eliminarDirecto(id);}
+    async function eliminarDirecto(id){if(!confirm(`¿Eliminar autor #${id}?`)) return;try{const res=await fetch(`${API}/${id}`,{method:"DELETE"});if(res.ok){toast("Autor eliminado");obtenerAutores();document.getElementById("deleteId").value="";}else{const e=await res.json();toast(e.detail||"Error","error");}}catch{toast("Error","error");}}
+    document.getElementById("editModal").addEventListener("click",function(e){if(e.target===this)cerrarModal();});
+    obtenerAutores();
+</script>
+</body>
+</html>
