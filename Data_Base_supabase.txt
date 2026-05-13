@@ -1,0 +1,38 @@
+CREATE TABLE public.autores (
+  id_autor integer NOT NULL DEFAULT nextval('autores_id_autor_seq'::regclass),
+  nombre character varying NOT NULL,
+  nacionalidad character varying,
+  CONSTRAINT autores_pkey PRIMARY KEY (id_autor)
+);
+CREATE TABLE public.categorias (
+  id_categoria integer NOT NULL DEFAULT nextval('categorias_id_categoria_seq'::regclass),
+  nombre character varying NOT NULL,
+  CONSTRAINT categorias_pkey PRIMARY KEY (id_categoria)
+);
+CREATE TABLE public.libros (
+  id_libro integer NOT NULL DEFAULT nextval('libros_id_libro_seq'::regclass),
+  titulo character varying NOT NULL,
+  anio_publicacion integer,
+  id_autor integer,
+  id_categoria integer,
+  stock integer,
+  CONSTRAINT libros_pkey PRIMARY KEY (id_libro),
+  CONSTRAINT libros_id_autor_fkey FOREIGN KEY (id_autor) REFERENCES public.autores(id_autor),
+  CONSTRAINT libros_id_categoria_fkey FOREIGN KEY (id_categoria) REFERENCES public.categorias(id_categoria)
+);
+CREATE TABLE public.prestamos (
+  id_prestamo integer NOT NULL DEFAULT nextval('prestamos_id_prestamo_seq'::regclass),
+  id_usuario integer,
+  id_libro integer,
+  fecha_prestamo date,
+  fecha_devolucion date,
+  CONSTRAINT prestamos_pkey PRIMARY KEY (id_prestamo),
+  CONSTRAINT prestamos_id_usuario_fkey FOREIGN KEY (id_usuario) REFERENCES public.usuarios(id_usuario),
+  CONSTRAINT prestamos_id_libro_fkey FOREIGN KEY (id_libro) REFERENCES public.libros(id_libro)
+);
+CREATE TABLE public.usuarios (
+  id_usuario integer NOT NULL DEFAULT nextval('usuarios_id_usuario_seq'::regclass),
+  nombre character varying,
+  correo character varying UNIQUE,
+  CONSTRAINT usuarios_pkey PRIMARY KEY (id_usuario)
+);
